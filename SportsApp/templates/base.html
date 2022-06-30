@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.10.0/css/all.css" integrity="sha384-AYmEC3Yw5cVb3ZcuHtOA93w35dYTsvhLPVnYs9eStHfGJvOvKxVfELGroGkvsg+p" crossorigin="anonymous"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <script src="https://bootstraptema.ru/snippets/form/2017/jquery.payform.min.js"></script>
+    <script src="https://bootstraptema.ru/snippets/form/2017/script.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <title>SportsShop</title>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-light"  style="background-color: lightblue;">
+  <div class="container-fluid">
+      <a class="navbar-brand" href="{% url 'base' %}" style="color: rebeccapurple; font-size: 2rem">Sportland<i class="bi bi-dribbble" style="font-size: 1.5rem;"></i></a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse sticky-top navbar navbar-expand-lg" id="navbarSupportedContent">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item">
+          <a class="nav-link active" aria-current="page" href="{% url 'base' %}">Главная</a>
+        </li>
+          {% if not request.user.is_authenticated %}
+              <li class="nav-item dropdown">
+                  <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-box-arrow-in-right"></i>
+            Вход
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+            <li><a class="dropdown-item" href="{% url 'login' %}">Aвторизация</a></li>
+            <li><a class="dropdown-item" href="{% url 'registration' %}">Регистрация</a></li>
+          </ul>
+        </li>
+          {% else %}
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'account' %}"><i class="bi bi-file-person-fill" style="font-size: 1rem; color: black;"></i>Мои заказы</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'logout' %}">Выход <i class="bi bi-box-arrow-right"></i></a>
+              </li>
+          {% endif %}
+      </ul>
+        {% if request.user.is_authenticated %}
+        <ul class="navbar-nav">
+            <li class="nav-item"><a href="{% url 'cart' %}" class="nav-link"><i class="bi bi-cart-check-fill" style="font-size: 1.5rem;"></i> <span class="badge bg-danger">{{ cart.products.count }}</span></a></li>
+        </ul>
+        {% endif %}
+    </div>
+  </div>
+</nav>
+<div class="container">
+{% block content %}
+        {% if messages %}
+        {% for message in messages %}
+
+            <div class="alert alert-primary fade show" role="alert">
+                <strong>{{ message }}</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+
+        {% endfor %}
+
+    {% endif %}
+        <div class="col-md-12 mt-3">
+            <div class="row">
+            <div class="col-md-3 mt-3">
+                    <div class="list-group">
+                        <a href="{% url 'base' %}" class="list-group-item list-group-item-primary list-group-item-action btn btn-outline-primary">Все товары</a>
+                        {% for category in categories %}
+                            {% if category == cat_selected %}
+                            <a href="#" class="list-group-item list-group-item-primary list-group-item-active btn btn-outline-primary" aria-current="true">{{ category.name}}</a>
+                            {% else %}
+                        <a href="{% url 'category' cat_slug=category.slug %}"
+                                class="list-group-item list-group-item-primary list-group-item-action btn btn-outline-primary">{{category.name}}</a>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+            </div>
+            <div class="col-md-9">
+            <div class="row">
+                {% for product in products %}
+                    <div class="card col-md-4 p-1 mb-3 mt-3">
+                        <a href="{{ product.get_absolute_url }}" class="text-decoration-none"><img src="{{ product.image.url }}" class="card-img-top" height="350px"></a>
+                        <div class="card-body text-center">
+                            <h5 class="card-title"><a href="{{ product.get_absolute_url }}" class="text-decoration-none">{{ product.name }}
+                            <p>{{ product.brand.name }}</p>
+                            </a></h5>
+
+                            <h5 class="card-title">{{ product.price }} руб.</h5>
+                        </div>
+                            <ul class="list-group list-group-flush">
+                            <li class="list-group-item">
+                                Наличие: {% if product.stock %}<strong class="badge bg-secondary">
+                                 {{ product.stock }} шт.
+                            </strong>{% else %}
+                                <strong class="badge bg-danger">Нет в наличии</strong>
+                            {% endif %}
+                            </li>
+                        </ul>
+                    <div class="card-body text-center">
+
+                        {% if request.user.is_authenticated %}
+
+                            {% if product.stock %}
+                                {% if product in cart.products_in_cart %}
+                                    <a href="#" class="btn btn-secondary disabled"><i class="bi bi-bag-check-fill" style="font-size: 1rem;"></i> Добавлен в корзину</a>
+                                {% else %}
+                                    <a href="{% url 'add_to_cart' product_slug=product.slug %}">
+                                        <button class="btn btn-primary"><i class="bi bi-bag-check-fill" style="font-size: 1rem;"></i>
+                                    Добавить в корзину
+                                            </button>
+                                    </a>
+                                {% endif %}
+                            {% endif %}
+
+                        {% else %}
+                            <a href="#" class="btn btn-secondary disabled">
+                            Войдите в аккаунт для формирования заказа
+                            </a>
+                        {% endif %}
+                    </div>
+                    </div>
+                {% endfor %}
+            </div>
+            </div>
+            </div>
+        </div>
+{% endblock content %}
+</div>
+</body>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js" integrity="sha384-cVKIPhGWiC2Al4u+LWgxfKTRIcfu0JTxR+EQDz/bgldoEyl4H0zUF0QKbrJ0EcQF" crossorigin="anonymous"></script>
+</html>
